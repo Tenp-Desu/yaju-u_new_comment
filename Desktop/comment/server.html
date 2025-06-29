@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>YouTube コメント表示</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 20px;
+    }
+    .comment {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      border-bottom: 1px solid #ccc;
+      padding: 10px 0;
+    }
+    .avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+    }
+    .content {
+      flex: 1;
+    }
+    .author {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    .text {
+      margin-bottom: 5px;
+    }
+    .meta {
+      font-size: 0.9em;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <h2>最新のYouTubeコメント（2番目を表示）</h2>
+  <div id="comment">読み込み中...</div>
+
+  <script>
+    const videoId = "niKAylKNIEI";
+    const apiKey = "AIzaSyD16N5V2IC47CAlgWxmfufk6HfBXpdB4rE";
+
+    async function fetchSecondLatestComment() {
+      const url = `https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=${videoId}&order=time&maxResults=5&key=${apiKey}`;
+      const commentDiv = document.getElementById("comment");
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+
+        const comments = data.items;
+
+        if (!comments || comments.length < 2) {
+          commentDiv.textContent = "2件以上のコメントが見つかりません。";
+          return;
+        }
+
+        const commentData = comments[1].snippet.topLevelComment.snippet;
+
+        const html = `
+          <div class="comment">
+            <img class="avatar" src="${commentData.authorProfileImageUrl}" alt="avatar" />
+            <div class="content">
+              <div class="author">${commentData.authorDisplayName}</div>
+              <div class="text">${commentData.textDisplay}</div>
+              <div class="meta">👍 ${commentData.likeCount} ｜ 💬 ${comments[1].snippet.totalReplyCount} 件の返信</div>
+            </div>
+          </div>
+        `;
+
+        commentDiv.innerHTML = html;
+
+      } catch (err) {
+        console.error("取得エラー:", err);
+        commentDiv.textContent = "コメントの取得に失敗しました。";
+      }
+    }
+
+    // 初回実行
+    fetchSecondLatestComment();
+
+    // 15秒ごとに更新
+    setInterval(fetchSecondLatestComment, 5000);
+  </script>
+</body>
+</html>
